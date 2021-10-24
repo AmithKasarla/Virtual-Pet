@@ -1,70 +1,58 @@
-var helicopterIMG, helicopterSprite, packageSprite,packageIMG;
-var packageBody,ground
-var leftBody, rightBody
-const Engine = Matter.Engine;
-const World = Matter.World;
-const Bodies = Matter.Bodies;
-const Body = Matter.Body;
+var dog, happyDog
+var database
+var foodS, foodStock
 
-function preload()
-{
-	helicopterIMG=loadImage("helicopter.png")
-	packageIMG=loadImage("package.png")
-}
+function preload(){
+   dogImg=loadImage("Images/Dog.png");
+   happyDog=loadImage("Images/happy dog.png");
+  }
+
 
 function setup() {
-	createCanvas(800, 700);
-	rectMode(CENTER);
-	
+  database=firebase.database();
+  createCanvas(500,500);
 
-	packageSprite=createSprite(width/2, 80, 10,10);
-	packageSprite.addImage(packageIMG)
-	packageSprite.scale=0.2
+  dog=createSprite(250,300,150,150);
+  dog.addImage(dogImg);
+  dog.scale=0.15;
 
-	helicopterSprite=createSprite(width/2, 200, 10,10);
-	helicopterSprite.addImage(helicopterIMG)
-	helicopterSprite.scale=0.6
+foodStock=database.ref('Food');
+foodStock.on("value", readStock);
 
-	groundSprite=createSprite(width/2, height-35, width,10);
-	groundSprite.shapeColor=color(255)
-
-
-	engine = Engine.create();
-	world = engine.world;
-
-	packageBody = Bodies.circle(width/2 , 200 , 5 , {restitution:0.4, isStatic:true});
-	World.add(world, packageBody);
-	
-
-	//Create a Ground
-	ground = Bodies.rectangle(width/2, 650, width, 10 , {isStatic:true} );
- 	World.add(world, ground);
-
-leftBody = createSprite (300,610,10,100)
-rightBody = createSprite (450,610,10,100)
-leftBody.shapeColor = "red"
-rightBody.shapeColor = "red"
-	Engine.run(engine);
-  
+  textSize(20); 
 }
 
 
 function draw() {
-  rectMode(CENTER);
-  background(0);
-  packageSprite.x= packageBody.position.x 
-  packageSprite.y= packageBody.position.y 
-  drawSprites();
+  background(46,139,87);
  
-}
-
-function keyPressed() {
- if (keyCode === DOWN_ARROW) {
-    // Look at the hints in the document and understand how to make the package body fall only on press of the Down arrow key.
-Matter.Body.setStatic(packageBody, false)
-    
+  if(keyWentDown(UP_ARROW)){
+   writeStock(foodS)
+   dog.addImage(happyDog)
   }
+
+  drawSprites();
+  fill(255,255,254);
+  stroke("black");
+  text("Food remaining : "+foodS,170,200);
+  textSize(13);
+  text("Note: Press UP_ARROW Key To Feed Drago Milk!",130,10,300,20);
 }
 
 
+function readStock(data){
+ foodS=data.val();
+}
 
+
+function writeStock(x){
+  if(x<=0){
+     x=0;
+  }else{
+    x=x-1;
+  }
+
+  database.ref('/').update({
+    Food:x
+  })
+}
